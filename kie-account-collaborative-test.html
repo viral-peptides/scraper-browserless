@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kie.ai Collaborative AI Scraper</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .collaborative-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="email"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-ai {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+        }
+        
+        .btn-pause {
+            background: linear-gradient(45deg, #ff6b6b, #ff4757);
+        }
+        
+        .btn-resume {
+            background: linear-gradient(45deg, #2ed573, #7bed9f);
+        }
+        
+        .btn-screenshot {
+            background: linear-gradient(45deg, #3742fa, #5352ed);
+        }
+        
+        .btn-stop {
+            background: linear-gradient(45deg, #ff4757, #ff3742);
+        }
+        
+        .control-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .ai-status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .ai-status.running {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        
+        .ai-status.paused {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+        }
+        
+        .ai-status.waiting {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+        
+        .ai-status.stopped {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        
+        .control-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .control-buttons .btn {
+            margin: 0;
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+        
+        
+        .guidance-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #e1e5e9;
+        }
+        
+        .main-control-line {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .guidance-input {
+            display: flex;
+            gap: 10px;
+            flex: 1;
+        }
+        
+        .guidance-input input[type="text"] {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        
+        .guidance-input input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .guidance-input .btn {
+            margin: 0;
+            padding: 12px 20px;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        
+        .control-buttons-inline {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-buttons-inline .btn {
+            margin: 0;
+            padding: 10px;
+            font-size: 16px;
+            min-width: 40px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quick-view-section {
+            margin-top: 15px;
+        }
+        
+        .quick-screenshot-box {
+            background: #f8f9fa;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            max-width: 300px;
+        }
+        
+        .quick-screenshot-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .quick-screenshot-placeholder {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+        }
+        
+        .quick-placeholder-icon {
+            font-size: 32px;
+            color: #999;
+        }
+        
+        .quick-screenshot-image {
+            max-width: 100%;
+            max-height: 100px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            object-fit: cover;
+        }
+        
+        .quick-screenshot-image:hover {
+            transform: scale(1.05);
+        }
+        
+        .guidance-input .btn {
+            margin: 0;
+            padding: 12px 20px;
+            font-size: 14px;
+            width: auto;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .logs {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+            scroll-behavior: smooth;
+        }
+        
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .logs-header h3 {
+            margin: 0;
+        }
+        
+        .btn-scroll {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn-scroll:hover {
+            transform: scale(1.1);
+        }
+        
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .log-entry.info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .log-entry.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .log-entry.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .log-entry.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .screenshot {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .screenshot img {
+            max-width: 200px;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .screenshot img:hover {
+            transform: scale(1.05);
+        }
+        
+        .screenshot-title {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .result-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .result-value {
+            color: #666;
+            font-family: monospace;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Kie.ai Collaborative AI Scraper</h1>
+        <div class="collaborative-badge">Real-time Human-AI Collaboration</div>
+        
+        <form id="accountForm">
+            <div class="form-group">
+                <label for="email">Email Address (Required):</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="Enter your email address" 
+                       value="RebeccaBeck2697@outlook.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password (Required):</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn btn-ai" id="startBtn">
+                🚀 Start Collaborative AI Scraper
+            </button>
+        </form>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div id="logs" class="logs hidden">
+            <div class="logs-header">
+                <h3>📋 AI Decision Log</h3>
+                <button id="scrollToBottomBtn" class="btn btn-scroll" title="Scroll to Latest">⬇️</button>
+            </div>
+            <div id="logEntries"></div>
+        </div>
+        
+        <div id="guidanceSection" class="guidance-section">
+            <div class="main-control-line">
+                <div class="guidance-input">
+                    <input type="text" id="guidanceInput" placeholder="Type your guidance for the AI (e.g., 'Click the blue button in top-right')">
+                    <button id="sendGuidanceBtn" class="btn" disabled>📤 Send Guidance</button>
+                    <button id="clearGuidanceBtn" class="btn">🗑️ Clear</button>
+                </div>
+                
+                <div id="aiStatus" class="ai-status stopped">AI Status: Stopped</div>
+                
+                <div class="control-buttons-inline">
+                    <button id="pauseBtn" class="btn btn-pause" disabled title="Pause AI">⏸️</button>
+                    <button id="resumeBtn" class="btn btn-resume" disabled title="Resume AI">▶️</button>
+                    <button id="stopBtn" class="btn btn-stop" disabled title="Stop AI">⏹️</button>
+                    <button id="takeScreenshotBtn" class="btn btn-screenshot" disabled title="Take Screenshot">📸</button>
+                </div>
+            </div>
+            
+            <div id="guidanceStatus" class="status info hidden">Ready to send guidance to AI</div>
+            
+            <div class="quick-view-section">
+                <div class="quick-screenshot-box">
+                    <div class="quick-screenshot-title">📸 Quick View</div>
+                    <div id="quickScreenshotPlaceholder" class="quick-screenshot-placeholder">
+                        <div class="quick-placeholder-icon">📷</div>
+                    </div>
+                    <img id="quickScreenshot" class="quick-screenshot-image hidden" alt="Quick screenshot" onclick="window.open(this.src, '_blank')">
+                </div>
+            </div>
+        </div>
+        
+        <div id="results" class="results hidden">
+            <h3>📊 Results</h3>
+            <div id="resultItems"></div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const form = document.getElementById('accountForm');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const takeScreenshotBtn = document.getElementById('takeScreenshotBtn');
+        const manualScreenshotBtn = document.getElementById('manualScreenshotBtn');
+        const downloadScreenshotBtn = document.getElementById('downloadScreenshotBtn');
+        const autoScreenshotCheckbox = document.getElementById('autoScreenshot');
+        const guidanceInput = document.getElementById('guidanceInput');
+        const sendGuidanceBtn = document.getElementById('sendGuidanceBtn');
+        const clearGuidanceBtn = document.getElementById('clearGuidanceBtn');
+        const guidanceStatus = document.getElementById('guidanceStatus');
+        const status = document.getElementById('status');
+        const logs = document.getElementById('logs');
+        const logEntries = document.getElementById('logEntries');
+        const results = document.getElementById('results');
+        const resultItems = document.getElementById('resultItems');
+        const guidanceSection = document.getElementById('guidanceSection');
+        const aiStatus = document.getElementById('aiStatus');
+        const quickScreenshot = document.getElementById('quickScreenshot');
+        const quickScreenshotPlaceholder = document.getElementById('quickScreenshotPlaceholder');
+        const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+
+        let aiState = 'stopped'; // stopped, running, paused, waiting
+        let autoScreenshotInterval = null;
+        let currentScreenshotData = null;
+
+        // Robust auto-scroll function
+        function forceScrollToBottom() {
+            if (logEntries) {
+                // Immediate scroll
+                logEntries.scrollTop = logEntries.scrollHeight;
+                
+                // Multiple delayed attempts to ensure it works
+                setTimeout(() => {
+                    logEntries.scrollTop = logEntries.scrollHeight;
+                    console.log('Scroll attempt 1:', logEntries.scrollTop, logEntries.scrollHeight);
+                }, 10);
+                
+                setTimeout(() => {
+                    logEntries.scrollTop = logEntries.scrollHeight;
+                    console.log('Scroll attempt 2:', logEntries.scrollTop, logEntries.scrollHeight);
+                }, 50);
+                
+                setTimeout(() => {
+                    logEntries.scrollTop = logEntries.scrollHeight;
+                    console.log('Scroll attempt 3:', logEntries.scrollTop, logEntries.scrollHeight);
+                }, 100);
+                
+                setTimeout(() => {
+                    logEntries.scrollTop = logEntries.scrollHeight;
+                    console.log('Scroll attempt 4:', logEntries.scrollTop, logEntries.scrollHeight);
+                }, 200);
+                
+                // Use scrollIntoView as backup
+                setTimeout(() => {
+                    const lastEntry = logEntries.lastElementChild;
+                    if (lastEntry) {
+                        lastEntry.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                        console.log('ScrollIntoView attempt');
+                    }
+                }, 150);
+            }
+        }
+
+        // Socket event listeners
+        socket.on('log', (data) => {
+            addLogEntry(data);
+            // Multiple scroll attempts for reliability
+            forceScrollToBottom();
+            setTimeout(() => forceScrollToBottom(), 10);
+            setTimeout(() => forceScrollToBottom(), 50);
+            setTimeout(() => forceScrollToBottom(), 100);
+        });
+
+        socket.on('screenshot', (data) => {
+            displayScreenshot(data);
+        });
+
+        socket.on('ai-status', (data) => {
+            updateAIStatus(data.status);
+        });
+
+        socket.on('guidance-response', (data) => {
+            showGuidanceStatus(data.message, 'success');
+        });
+
+        function updateAIStatus(newStatus) {
+            aiState = newStatus;
+            aiStatus.textContent = `AI Status: ${newStatus.charAt(0).toUpperCase() + newStatus.slice(1)}`;
+            aiStatus.className = `ai-status ${newStatus}`;
+            
+            // Update button states with better logic
+            pauseBtn.disabled = newStatus !== 'running';
+            resumeBtn.disabled = newStatus !== 'paused' && newStatus !== 'waiting';
+            stopBtn.disabled = newStatus === 'stopped';
+            takeScreenshotBtn.disabled = newStatus === 'stopped';
+            sendGuidanceBtn.disabled = newStatus === 'stopped';
+            
+            // Debug logging
+            console.log(`AI Status updated to: ${newStatus}`);
+            console.log(`Pause button disabled: ${pauseBtn.disabled}`);
+            console.log(`Resume button disabled: ${resumeBtn.disabled}`);
+            console.log(`Stop button disabled: ${stopBtn.disabled}`);
+        }
+
+        function displayScreenshot(data) {
+            if (data.screenshot) {
+                console.log('Updating quick screenshot with:', data.screenshot);
+                
+                // Update quick screenshot box only
+                quickScreenshot.src = `/screenshots/${data.screenshot}?t=${Date.now()}`;
+                quickScreenshot.classList.remove('hidden');
+                quickScreenshotPlaceholder.classList.add('hidden');
+                currentScreenshotData = data.screenshot;
+                
+                console.log('Quick screenshot updated successfully');
+            } else {
+                console.log('No screenshot data received');
+            }
+        }
+
+        function addLogEntry(data) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${data.type}`;
+            
+            const timestamp = data.timestamp || new Date().toLocaleString();
+            const message = data.error ? `${data.message} - Error: ${data.error}` : data.message;
+            
+            logEntry.innerHTML = `
+                <strong>${data.step}</strong> ${message}
+                <br><small>${timestamp}</small>
+            `;
+            
+            logEntries.appendChild(logEntry);
+            
+            // Add screenshot if available
+            if (data.screenshot) {
+                const screenshotDiv = document.createElement('div');
+                screenshotDiv.className = 'screenshot';
+                
+                screenshotDiv.innerHTML = `
+                    <div class="screenshot-title">📸 Screenshot: ${data.step}</div>
+                    <img src="/screenshots/${data.screenshot}" alt="${data.step}" onerror="this.style.display='none'" 
+                         onclick="window.open('/screenshots/${data.screenshot}', '_blank')">
+                `;
+                
+                logEntry.appendChild(screenshotDiv);
+            }
+            
+            // Force scroll to bottom to show new logs
+            forceScrollToBottom();
+        }
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function showGuidanceStatus(message, type) {
+            guidanceStatus.textContent = message;
+            guidanceStatus.className = `status ${type}`;
+            guidanceStatus.classList.remove('hidden');
+        }
+
+        function showLogs() {
+            logs.classList.remove('hidden');
+        }
+
+        function showResults(email, password) {
+            results.classList.remove('hidden');
+            resultItems.innerHTML = `
+                <div class="result-item">
+                    <div class="result-label">Email:</div>
+                    <div class="result-value">${email}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Password:</div>
+                    <div class="result-value">${password}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Status:</div>
+                    <div class="result-value">Account created successfully with collaborative AI assistance</div>
+                </div>
+            `;
+        }
+
+        function resetUI() {
+            startBtn.disabled = false;
+            startBtn.textContent = '🚀 Start Collaborative AI Scraper';
+            status.style.display = 'none';
+            logs.classList.add('hidden');
+            results.classList.add('hidden');
+            logEntries.innerHTML = '';
+            updateAIStatus('stopped');
+            
+            // Reset quick screenshot display
+            quickScreenshot.classList.add('hidden');
+            quickScreenshotPlaceholder.classList.remove('hidden');
+            currentScreenshotData = null;
+            
+            if (autoScreenshotInterval) {
+                clearInterval(autoScreenshotInterval);
+                autoScreenshotInterval = null;
+            }
+        }
+
+
+        function takeScreenshot() {
+            console.log('Taking manual screenshot...');
+            fetch('/api/take-screenshot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Screenshot response:', data);
+                if (data.success && data.screenshot) {
+                    displayScreenshot(data);
+                } else {
+                    console.log('Screenshot failed or no data:', data);
+                }
+            })
+            .catch(error => {
+                console.error('Screenshot error:', error);
+            });
+        }
+
+
+        function sendGuidance() {
+            const guidance = guidanceInput.value.trim();
+            if (!guidance) return;
+            
+            fetch('/api/send-guidance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ guidance })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showGuidanceStatus(`Guidance sent: "${guidance}"`, 'success');
+                    guidanceInput.value = '';
+                } else {
+                    showGuidanceStatus(`Failed to send guidance: ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showGuidanceStatus(`Error sending guidance: ${error.message}`, 'error');
+            });
+        }
+
+        // Event listeners
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showStatus('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            startBtn.disabled = true;
+            startBtn.textContent = '🤖 Starting Collaborative AI...';
+            showStatus('🤖 Starting collaborative AI scraper...', 'info');
+            showLogs();
+            guidanceSection.classList.remove('hidden');
+            
+            try {
+                const response = await fetch('/api/kie-account-collaborative', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.success) {
+                    showStatus('✅ Account created successfully with collaborative AI!', 'success');
+                    showResults(data.email, data.password);
+                } else {
+                    showStatus(`❌ Account creation failed: ${data.error || data.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Account creation failed: ${error.message}`, 'error');
+            } finally {
+                startBtn.disabled = false;
+                startBtn.textContent = '🚀 Start Collaborative AI Scraper';
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            console.log('Pause button clicked');
+            fetch('/api/pause-ai', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Pause response:', data);
+                    if (data.success) {
+                        showGuidanceStatus('AI paused. You can now send guidance.', 'info');
+                    }
+                })
+                .catch(error => {
+                    console.error('Pause error:', error);
+                });
+        });
+
+        resumeBtn.addEventListener('click', () => {
+            console.log('Resume button clicked');
+            fetch('/api/resume-ai', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Resume response:', data);
+                    if (data.success) {
+                        showGuidanceStatus('AI resumed. It will continue with automatic decisions.', 'success');
+                    }
+                })
+                .catch(error => {
+                    console.error('Resume error:', error);
+                });
+        });
+
+        stopBtn.addEventListener('click', () => {
+            fetch('/api/stop-ai', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showGuidanceStatus('AI stopped.', 'info');
+                        resetUI();
+                    }
+                });
+        });
+
+        takeScreenshotBtn.addEventListener('click', takeScreenshot);
+
+        sendGuidanceBtn.addEventListener('click', sendGuidance);
+        
+        clearGuidanceBtn.addEventListener('click', () => {
+            guidanceInput.value = '';
+            guidanceStatus.classList.add('hidden');
+        });
+
+        guidanceInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendGuidance();
+            }
+        });
+
+        // Scroll to bottom button
+        scrollToBottomBtn.addEventListener('click', () => {
+            forceScrollToBottom();
+        });
+
+        // Initialize
+        console.log('Initializing UI...');
+        console.log('Guidance section element:', guidanceSection);
+        console.log('AI status element:', aiStatus);
+        resetUI();
+    </script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recraft.ai Scraper - Debug Logs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .debug-section {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .debug-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .debug-content {
+            padding: 20px;
+        }
+
+        .step {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .step-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .step-details {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .screenshot {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .screenshot img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .screenshot-caption {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .logs-section {
+            background: #1e1e1e;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+        }
+
+        .log-timestamp {
+            color: #888;
+        }
+
+        .log-level-info {
+            color: #66d9ef;
+        }
+
+        .log-level-success {
+            color: #a6e22e;
+        }
+
+        .log-level-warning {
+            color: #f39c12;
+        }
+
+        .log-level-error {
+            color: #f92672;
+        }
+
+        .back-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: transform 0.2s;
+            margin-bottom: 20px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .refresh-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-left: 10px;
+        }
+
+        .refresh-button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Recraft.ai Scraper Debug Logs</h1>
+            <p>Step-by-step execution details and screenshots</p>
+        </div>
+        
+        <div class="content">
+            <a href="/recraft" class="back-button">← Back to Scraper</a>
+            <button class="refresh-button" onclick="loadDebugData()">🔄 Refresh Logs</button>
+            
+            <div class="debug-section">
+                <div class="debug-header">📊 Execution Summary</div>
+                <div class="debug-content">
+                    <div id="summary">
+                        <div class="no-data">Loading debug data...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <div class="debug-header">📋 Step-by-Step Execution</div>
+                <div class="debug-content">
+                    <div id="steps">
+                        <div class="no-data">Loading steps...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <div class="debug-header">📸 Screenshots</div>
+                <div class="debug-content">
+                    <div id="screenshots">
+                        <div class="no-data">Loading screenshots...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="debug-section">
+                <div class="debug-header">📝 Raw Logs</div>
+                <div class="debug-content">
+                    <div id="logs" class="logs-section">
+                        <div class="no-data">Loading logs...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let debugData = null;
+
+        async function loadDebugData() {
+            try {
+                const response = await fetch('/api/debug-recraft');
+                debugData = await response.json();
+                renderDebugData();
+            } catch (error) {
+                console.error('Error loading debug data:', error);
+                document.getElementById('summary').innerHTML = '<div class="no-data">Error loading debug data. Please try again.</div>';
+            }
+        }
+
+        function renderDebugData() {
+            if (!debugData) {
+                document.getElementById('summary').innerHTML = '<div class="no-data">No debug data available. Run the scraper first.</div>';
+                return;
+            }
+
+            renderSummary();
+            renderSteps();
+            renderScreenshots();
+            renderLogs();
+        }
+
+        function renderSummary() {
+            const summary = document.getElementById('summary');
+            const data = debugData.data || {};
+            
+            summary.innerHTML = `
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-title">🎯 Scraping Status</div>
+                        <div class="step-status ${data.ok ? 'status-success' : 'status-error'}">
+                            ${data.ok ? 'SUCCESS' : 'FAILED'}
+                        </div>
+                    </div>
+                    <div class="step-details">
+                        <strong>Email:</strong> ${data.email || 'N/A'}<br>
+                        <strong>Final URL:</strong> ${data.finalUrl || 'N/A'}<br>
+                        <strong>Execution Time:</strong> ${data.executionTime || 'N/A'}<br>
+                        <strong>Steps Completed:</strong> ${data.stepsCompleted || 0}/${data.totalSteps || 12}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderSteps() {
+            const steps = document.getElementById('steps');
+            const stepData = debugData.steps || [];
+            
+            if (stepData.length === 0) {
+                steps.innerHTML = '<div class="no-data">No step data available.</div>';
+                return;
+            }
+
+            steps.innerHTML = stepData.map((step, index) => `
+                <div class="step">
+                    <div class="step-header">
+                        <div class="step-title">${step.title}</div>
+                        <div class="step-status ${getStatusClass(step.status)}">
+                            ${step.status.toUpperCase()}
+                        </div>
+                    </div>
+                    <div class="step-details">
+                        <strong>Description:</strong> ${step.description}<br>
+                        <strong>Timestamp:</strong> ${step.timestamp}<br>
+                        <strong>Duration:</strong> ${step.duration || 'N/A'}<br>
+                        ${step.details ? `<strong>Details:</strong> ${step.details}<br>` : ''}
+                        ${step.error ? `<strong>Error:</strong> <span style="color: #f92672;">${step.error}</span><br>` : ''}
+                    </div>
+                    ${step.screenshot ? `
+                        <div class="screenshot">
+                            <img src="data:image/png;base64,${step.screenshot}" alt="Screenshot for ${step.title}">
+                            <div class="screenshot-caption">Screenshot: ${step.title}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function renderScreenshots() {
+            const screenshots = document.getElementById('screenshots');
+            const screenshotData = debugData.screenshots || [];
+            
+            if (screenshotData.length === 0) {
+                screenshots.innerHTML = '<div class="no-data">No screenshots available.</div>';
+                return;
+            }
+
+            screenshots.innerHTML = screenshotData.map((screenshot, index) => `
+                <div class="screenshot">
+                    <img src="data:image/png;base64,${screenshot.data}" alt="${screenshot.title}">
+                    <div class="screenshot-caption">${screenshot.title} - ${screenshot.timestamp}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderLogs() {
+            const logs = document.getElementById('logs');
+            const logData = debugData.logs || [];
+            
+            if (logData.length === 0) {
+                logs.innerHTML = '<div class="no-data">No log data available.</div>';
+                return;
+            }
+
+            logs.innerHTML = logData.map(log => `
+                <div class="log-entry">
+                    <span class="log-timestamp">[${log.timestamp}]</span>
+                    <span class="log-level-${log.level}">[${log.level.toUpperCase()}]</span>
+                    ${log.message}
+                </div>
+            `).join('');
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'success': return 'status-success';
+                case 'error': return 'status-error';
+                case 'warning': return 'status-warning';
+                case 'info': return 'status-info';
+                default: return 'status-info';
+            }
+        }
+
+        // Load debug data on page load
+        document.addEventListener('DOMContentLoaded', loadDebugData);
+    </script>
+</body>
+</html>

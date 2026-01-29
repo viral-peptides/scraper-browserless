@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outlook Account Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.1);
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .status-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready { background-color: #28a745; }
+        .status-running { background-color: #ffc107; }
+        .status-paused { background-color: #fd7e14; }
+        .status-stopped { background-color: #dc3545; }
+
+        .logs-section {
+            background: #1e1e1e;
+            color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .logs-section h3 {
+            color: #f8f9fa;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-screenshot {
+            margin-top: 8px;
+            padding: 4px;
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        .log-screenshot img {
+            max-width: 300px;
+            max-height: 200px;
+            width: auto;
+            height: auto;
+            border: 1px solid #444;
+            border-radius: 4px;
+            display: block;
+            object-fit: contain;
+        }
+
+        .log-timestamp {
+            color: #6c757d;
+            margin-right: 10px;
+        }
+
+        .log-step {
+            color: #0078d4;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .log-type-success { color: #28a745; }
+        .log-type-error { color: #dc3545; }
+        .log-type-warning { color: #ffc107; }
+        .log-type-info { color: #17a2b8; }
+
+
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Outlook Account Creator</h1>
+            <p>Automated Outlook account creation with human-like behavior</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Account Information Form -->
+            <div class="form-section">
+                <h2>📧 Account Information</h2>
+                <div class="form-group">
+                    <label for="email">Email Address:</label>
+                    <input type="email" id="email" placeholder="Enter email address (e.g., user@outlook.com)" value="">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" placeholder="Enter password" value="">
+                </div>
+            </div>
+
+            <!-- Login Account Form -->
+            <div class="form-section">
+                <h2>🔐 Login Account</h2>
+                <div class="form-group">
+                    <label for="loginEmail">Login Email:</label>
+                    <input type="email" id="loginEmail" placeholder="Enter existing email for login" value="">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Login Password:</label>
+                    <input type="password" id="loginPassword" placeholder="Enter existing password for login" value="">
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="control-buttons">
+                <button class="btn btn-primary" id="startBtn">
+                    🚀 Start Creation
+                </button>
+                <button class="btn btn-secondary" id="loginBtn">
+                    🔐 Login Account
+                </button>
+                <button class="btn btn-warning" id="pauseBtn" disabled>
+                    ⏸️ Pause
+                </button>
+                <button class="btn btn-success" id="resumeBtn" disabled>
+                    ▶️ Resume
+                </button>
+                <button class="btn btn-danger" id="stopBtn" disabled>
+                    ⏹️ Stop
+                </button>
+                <button class="btn btn-info" id="screenshotBtn" disabled>
+                    📸 Take Screenshot
+                </button>
+                <button class="btn btn-secondary" id="clearBtn">
+                    🗑️ Clear Logs
+                </button>
+            </div>
+
+            <!-- Status Section -->
+            <div class="status-section">
+                <h3>📊 Status</h3>
+                <div id="statusDisplay">
+                    <span class="status-indicator status-ready"></span>
+                    <span id="statusText">Ready to start</span>
+                </div>
+            </div>
+
+            <!-- Logs Section -->
+            <div class="logs-section">
+                <h3>📝 Process Logs</h3>
+                <div id="logsContainer">
+                    <div class="log-entry">
+                        <span class="log-timestamp">[Ready]</span>
+                        <span class="log-step">System</span>
+                        <span class="log-type-info">Outlook Account Creator ready. Enter email and password to begin.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screenshot Section -->
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        // Socket.IO connection
+        const socket = io();
+        
+        // Listen for real-time logs
+        socket.on('log', function(logEntry) {
+            console.log('Received log entry:', logEntry);
+            addLogEntry(logEntry);
+        });
+        
+        // Listen for screenshots
+        socket.on('screenshot', function(screenshotData) {
+            console.log('Received screenshot:', screenshotData);
+        });
+        
+        
+        // DOM elements
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusDisplay = document.getElementById('statusDisplay');
+        const statusText = document.getElementById('statusText');
+        const logsContainer = document.getElementById('logsContainer');
+
+        // State variables
+        let isRunning = false;
+        let isPaused = false;
+        let currentProcess = null;
+
+        // Initialize
+        function initializeUI() {
+            updateStatus('ready', 'Ready to start');
+            updateButtons();
+        }
+
+        // Update status display
+        function updateStatus(status, message) {
+            const statusIndicator = statusDisplay.querySelector('.status-indicator');
+            statusIndicator.className = `status-indicator status-${status}`;
+            statusText.textContent = message;
+        }
+
+        // Update button states
+        function updateButtons() {
+            startBtn.disabled = isRunning;
+            pauseBtn.disabled = !isRunning || isPaused;
+            resumeBtn.disabled = !isRunning || !isPaused;
+            stopBtn.disabled = !isRunning;
+            screenshotBtn.disabled = !isRunning;
+        }
+
+        // Add log entry
+        function addLogEntry(entry) {
+            const logElement = document.createElement('div');
+            logElement.className = 'log-entry';
+            
+            const timestamp = entry.timestamp || new Date().toLocaleString();
+            const step = entry.step || 'Unknown';
+            const type = entry.type || 'info';
+            const message = entry.message || '';
+            
+            // Create screenshot HTML if available
+            let screenshotHtml = '';
+            if (entry.screenshot) {
+                console.log('Adding screenshot to log:', entry.screenshot);
+                
+                // Validate screenshot filename to prevent XSS
+                const cleanScreenshot = entry.screenshot.replace(/[^a-zA-Z0-9._-]/g, '');
+                
+                screenshotHtml = `
+                    <div class="log-screenshot" style="margin-top: 8px; padding: 4px; background: #1a1a1a; border-radius: 4px;">
+                        <img src="/screenshots/${cleanScreenshot}" alt="Screenshot" 
+                             style="max-width: 300px; max-height: 200px; width: auto; height: auto; border: 1px solid #444; border-radius: 4px; display: block; object-fit: contain;"
+                             onload="console.log('Screenshot loaded successfully:', this.src);"
+                             onerror="console.log('Screenshot failed to load:', this.src); this.parentElement.innerHTML='<div style=\\"color: #ff6b6b; padding: 8px;\\">Screenshot failed to load</div>';">
+                    </div>
+                `;
+            }
+            
+            logElement.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                <span class="log-step">${step}</span>
+                <span class="log-type-${type}">${message}</span>
+                ${screenshotHtml}
+            `;
+            
+            logsContainer.appendChild(logElement);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+
+        // Start account creation
+        async function startAccountCreation() {
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            if (!email || !password) {
+                addLogEntry({
+                    step: 'Validation',
+                    type: 'error',
+                    message: 'Please enter both email and password'
+                });
+                return;
+            }
+            
+            isRunning = true;
+            isPaused = false;
+            updateStatus('running', 'Creating Outlook account...');
+            updateButtons();
+            
+            addLogEntry({
+                step: 'Account Creation',
+                type: 'info',
+                message: `Starting Outlook account creation for ${email}`
+            });
+            
+            try {
+                const response = await fetch('/api/outlook-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLogEntry({
+                        step: 'Account Creation',
+                        type: 'success',
+                        message: `✅ Outlook account created successfully!`
+                    });
+                    addLogEntry({
+                        step: 'Account Details',
+                        type: 'info',
+                        message: `📧 Email: ${result.email}`
+                    });
+                    addLogEntry({
+                        step: 'Account Details',
+                        type: 'info',
+                        message: `👤 Name: ${result.firstName} ${result.lastName}`
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Account Creation',
+                        type: 'error',
+                        message: `❌ Account creation failed: ${result.error}`
+                    });
+                }
+                
+            } catch (error) {
+                addLogEntry({
+                    step: 'Account Creation',
+                    type: 'error',
+                    message: `❌ Error: ${error.message}`
+                });
+            } finally {
+                isRunning = false;
+                isPaused = false;
+                updateStatus('ready', 'Process completed');
+                updateButtons();
+            }
+        }
+
+        // Start account login
+        async function startAccountLogin() {
+            const loginEmail = document.getElementById('loginEmail').value.trim();
+            const loginPassword = document.getElementById('loginPassword').value.trim();
+            
+            if (!loginEmail || !loginPassword) {
+                addLogEntry({
+                    step: 'Validation',
+                    type: 'error',
+                    message: 'Please enter both login email and password'
+                });
+                return;
+            }
+            
+            isRunning = true;
+            isPaused = false;
+            updateStatus('running', 'Logging into Outlook account...');
+            updateButtons();
+            
+            addLogEntry({
+                step: 'Account Login',
+                type: 'info',
+                message: `Starting Outlook account login for ${loginEmail}`
+            });
+            
+            try {
+                const response = await fetch('/api/outlook-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: loginEmail,
+                        password: loginPassword
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLogEntry({
+                        step: 'Account Login',
+                        type: 'success',
+                        message: `✅ Successfully logged into Outlook account!`
+                    });
+                    addLogEntry({
+                        step: 'Account Details',
+                        type: 'info',
+                        message: `📧 Email: ${result.email}`
+                    });
+                    addLogEntry({
+                        step: 'Account Details',
+                        type: 'info',
+                        message: `👤 Name: ${result.name || 'N/A'}`
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Account Login',
+                        type: 'error',
+                        message: `❌ Login failed: ${result.error || 'Unknown error'}`
+                    });
+                }
+                
+            } catch (error) {
+                addLogEntry({
+                    step: 'Account Login',
+                    type: 'error',
+                    message: `❌ Error: ${error.message}`
+                });
+            } finally {
+                isRunning = false;
+                isPaused = false;
+                updateStatus('ready', 'Login process completed');
+                updateButtons();
+            }
+        }
+
+        // Pause process
+        async function pauseProcess() {
+            try {
+                await fetch('/api/pause-scraper', { method: 'POST' });
+                isPaused = true;
+                updateStatus('paused', 'Process paused');
+                updateButtons();
+                addLogEntry({
+                    step: 'Control',
+                    type: 'info',
+                    message: 'Process paused'
+                });
+            } catch (error) {
+                addLogEntry({
+                    step: 'Control',
+                    type: 'error',
+                    message: `Failed to pause: ${error.message}`
+                });
+            }
+        }
+
+        // Resume process
+        async function resumeProcess() {
+            try {
+                await fetch('/api/resume-scraper', { method: 'POST' });
+                isPaused = false;
+                updateStatus('running', 'Process resumed');
+                updateButtons();
+                addLogEntry({
+                    step: 'Control',
+                    type: 'info',
+                    message: 'Process resumed'
+                });
+            } catch (error) {
+                addLogEntry({
+                    step: 'Control',
+                    type: 'error',
+                    message: `Failed to resume: ${error.message}`
+                });
+            }
+        }
+
+        // Stop process
+        async function stopProcess() {
+            try {
+                await fetch('/api/stop-scraper', { method: 'POST' });
+                isRunning = false;
+                isPaused = false;
+                updateStatus('stopped', 'Process stopped');
+                updateButtons();
+                addLogEntry({
+                    step: 'Control',
+                    type: 'info',
+                    message: 'Process stopped'
+                });
+            } catch (error) {
+                addLogEntry({
+                    step: 'Control',
+                    type: 'error',
+                    message: `Failed to stop: ${error.message}`
+                });
+            }
+        }
+
+        // Take screenshot
+        async function takeScreenshot() {
+            try {
+                const response = await fetch('/api/screenshot', { method: 'POST' });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const responseText = await response.text();
+                console.log('Screenshot response:', responseText);
+                
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (parseError) {
+                    throw new Error(`Invalid JSON response: ${parseError.message}`);
+                }
+                
+                if (result.success) {
+                    addLogEntry({
+                        step: 'Screenshot',
+                        type: 'success',
+                        message: `📸 Screenshot taken: ${result.screenshot}`,
+                        screenshot: result.screenshot
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Screenshot',
+                        type: 'error',
+                        message: `❌ Screenshot failed: ${result.error || 'Unknown error'}`
+                    });
+                }
+            } catch (error) {
+                console.error('Screenshot error:', error);
+                addLogEntry({
+                    step: 'Screenshot',
+                    type: 'error',
+                    message: `❌ Screenshot error: ${error.message}`
+                });
+            }
+        }
+
+        // Clear logs
+        function clearLogs() {
+            logsContainer.innerHTML = `
+                <div class="log-entry">
+                    <span class="log-timestamp">[${new Date().toLocaleString()}]</span>
+                    <span class="log-step">System</span>
+                    <span class="log-type-info">Logs cleared</span>
+                </div>
+            `;
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startAccountCreation);
+        loginBtn.addEventListener('click', startAccountLogin);
+        pauseBtn.addEventListener('click', pauseProcess);
+        resumeBtn.addEventListener('click', resumeProcess);
+        stopBtn.addEventListener('click', stopProcess);
+        screenshotBtn.addEventListener('click', takeScreenshot);
+        clearBtn.addEventListener('click', clearLogs);
+
+        // Initialize UI
+        initializeUI();
+    </script>
+</body>
+</html>

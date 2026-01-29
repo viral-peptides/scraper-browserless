@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kie.ai Account Creation</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="email"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: auto;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .control-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            margin-bottom: 10px;
+            overflow-x: auto;
+        }
+        
+        .control-buttons .btn {
+            flex-shrink: 0;
+            white-space: nowrap;
+            min-width: auto;
+            padding: 6px 10px;
+            font-size: 12px;
+            width: auto;
+            max-width: 120px;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .results h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .result-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .logs {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .log-entry {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e1e5e9;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .log-entry.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .log-entry.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .log-entry.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .log-entry.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .screenshot {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .screenshot img {
+            max-width: 200px;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .screenshot img:hover {
+            transform: scale(1.05);
+        }
+        
+        .screenshot-title {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .description {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .description h3 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        
+        .description ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .description li {
+            margin: 5px 0;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Kie.ai Account Creation</h1>
+        
+        <div class="description">
+            <h3>📧 Account Creation Process</h3>
+            <p>This scraper will automatically:</p>
+            <ul>
+                <li>Navigate to Kie.ai and click "Get Started"</li>
+                <li>Sign in with Microsoft using your credentials</li>
+                <li>Handle all Microsoft authentication popups</li>
+                <li>Solve CAPTCHA challenges using AI vision</li>
+                <li>Complete account setup and reach dashboard</li>
+                <li>Provide real-time logging of the entire process</li>
+            </ul>
+        </div>
+        
+        <form id="accountForm">
+            <div class="form-group">
+                <label for="email">📧 Email Address (Required):</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your Microsoft email address">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">🔑 Password (Required):</label>
+                <input type="password" id="password" name="password" required placeholder="Enter your Microsoft password">
+            </div>
+            
+            <div class="form-group">
+                <div class="control-buttons">
+                    <button type="button" class="btn btn-screenshot" id="screenshotBtn" style="background: linear-gradient(45deg, #28a745, #20c997);">
+                        📸 Screenshot
+                    </button>
+                    <button type="button" class="btn" id="pauseBtn" style="background: linear-gradient(45deg, #ffc107, #ff9800); color: #000;" disabled>
+                        ⏸️ Pause
+                    </button>
+                    <button type="button" class="btn" id="resumeBtn" style="background: linear-gradient(45deg, #17a2b8, #138496);" disabled>
+                        ▶️ Resume
+                    </button>
+                    <button type="button" class="btn" id="stopBtn" style="background: linear-gradient(45deg, #dc3545, #c82333);" disabled>
+                        ⏹️ Stop
+                    </button>
+                    <button type="button" class="btn" id="cleanBtn" style="background: linear-gradient(45deg, #6c757d, #5a6268);">
+                        🧹 Clean
+                    </button>
+                    <button type="button" class="btn" id="closeBrowserBtn" style="background: linear-gradient(45deg, #e74c3c, #c0392b);">
+                        ❌ Close Browser
+                    </button>
+                    <button type="button" class="btn" id="goToDashboardBtn" style="background: linear-gradient(45deg, #9b59b6, #8e44ad);">
+                        🏠 Go to Dashboard
+                    </button>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn" id="createBtn" style="width: auto; max-width: 200px; margin: 0 auto; display: block;">
+                🚀 Start Account Creation
+            </button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Creating Kie.ai account...</p>
+        </div>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3>📊 Account Details</h3>
+            <div id="resultContent"></div>
+        </div>
+        
+        <div class="logs" id="logs">
+            <div class="log-entry info">
+                <strong>Ready</strong> System: Waiting for account creation to start...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const form = document.getElementById('accountForm');
+        const createBtn = document.getElementById('createBtn');
+        const loading = document.getElementById('loading');
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+        const resultContent = document.getElementById('resultContent');
+        const logs = document.getElementById('logs');
+        const screenshotBtn = document.getElementById('screenshotBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resumeBtn = document.getElementById('resumeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const cleanBtn = document.getElementById('cleanBtn');
+        const goToDashboardBtn = document.getElementById('goToDashboardBtn');
+        
+        // Scraper state
+        let isScraperRunning = false;
+        let isScraperPaused = false;
+        
+        // Screenshot functionality
+        function takeScreenshot() {
+            console.log('Taking manual screenshot...');
+            fetch('/api/take-screenshot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Screenshot response:', data);
+                if (data.success && data.screenshot) {
+                    // Add screenshot to logs
+                    addLogEntry({
+                        step: 'Manual Screenshot',
+                        type: 'info',
+                        message: `Screenshot taken: ${data.screenshot}`,
+                        timestamp: new Date().toLocaleString(),
+                        screenshot: data.screenshot
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Manual Screenshot',
+                        type: 'error',
+                        message: 'Failed to take screenshot: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Screenshot error:', error);
+                addLogEntry({
+                    step: 'Manual Screenshot',
+                    type: 'error',
+                    message: 'Screenshot error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Pause Scraper functionality
+        function pauseScraper() {
+            console.log('Pausing scraper...');
+            fetch('/api/pause-scraper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Pause response:', data);
+                if (data.success) {
+                    isScraperPaused = true;
+                    updateButtonStates();
+                    addLogEntry({
+                        step: 'Scraper Control',
+                        type: 'info',
+                        message: 'Scraper paused successfully',
+                        timestamp: new Date().toLocaleString()
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Scraper Control',
+                        type: 'error',
+                        message: 'Failed to pause scraper: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Pause error:', error);
+                addLogEntry({
+                    step: 'Scraper Control',
+                    type: 'error',
+                    message: 'Pause error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Resume Scraper functionality
+        function resumeScraper() {
+            console.log('Resuming scraper...');
+            fetch('/api/resume-scraper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Resume response:', data);
+                if (data.success) {
+                    isScraperPaused = false;
+                    updateButtonStates();
+                    addLogEntry({
+                        step: 'Scraper Control',
+                        type: 'info',
+                        message: 'Scraper resumed successfully',
+                        timestamp: new Date().toLocaleString()
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Scraper Control',
+                        type: 'error',
+                        message: 'Failed to resume scraper: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Resume error:', error);
+                addLogEntry({
+                    step: 'Scraper Control',
+                    type: 'error',
+                    message: 'Resume error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Stop Scraper functionality
+        function stopScraper() {
+            console.log('Stopping scraper...');
+            fetch('/api/stop-scraper', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Stop response:', data);
+                if (data.success) {
+                    isScraperRunning = false;
+                    isScraperPaused = false;
+                    updateButtonStates();
+                    addLogEntry({
+                        step: 'Scraper Control',
+                        type: 'info',
+                        message: 'Scraper stopped successfully',
+                        timestamp: new Date().toLocaleString()
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Scraper Control',
+                        type: 'error',
+                        message: 'Failed to stop scraper: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Stop error:', error);
+                addLogEntry({
+                    step: 'Scraper Control',
+                    type: 'error',
+                    message: 'Stop error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Clean Browser functionality
+        function cleanBrowser() {
+            console.log('Cleaning browser...');
+            fetch('/api/clean-browser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Clean response:', data);
+                if (data.success) {
+                    addLogEntry({
+                        step: 'Browser Control',
+                        type: 'info',
+                        message: 'Browser cleaned successfully',
+                        timestamp: new Date().toLocaleString()
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Browser Control',
+                        type: 'error',
+                        message: 'Failed to clean browser: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Clean error:', error);
+                addLogEntry({
+                    step: 'Browser Control',
+                    type: 'error',
+                    message: 'Clean error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Update button states based on scraper status
+        function updateButtonStates() {
+            if (isScraperRunning) {
+                createBtn.disabled = true;
+                pauseBtn.disabled = isScraperPaused;
+                resumeBtn.disabled = !isScraperPaused;
+                stopBtn.disabled = false;
+            } else {
+                createBtn.disabled = false;
+                pauseBtn.disabled = true;
+                resumeBtn.disabled = true;
+                stopBtn.disabled = true;
+            }
+        }
+
+        // Close Browser functionality
+        function closeBrowser() {
+            console.log('Closing browser...');
+            fetch('/api/close-browser', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Close response:', data);
+                if (data.success) {
+                    addLogEntry({
+                        step: 'Browser Control',
+                        type: 'info',
+                        message: 'Browser closed successfully',
+                        timestamp: new Date().toLocaleString()
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Browser Control',
+                        type: 'error',
+                        message: 'Close failed: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Close error:', error);
+                addLogEntry({
+                    step: 'Browser Control',
+                    type: 'error',
+                    message: 'Close error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Go to Dashboard functionality
+        function goToDashboard() {
+            console.log('Navigating to dashboard...');
+            fetch('/api/go-to-dashboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Dashboard response:', data);
+                if (data.success) {
+                    addLogEntry({
+                        step: 'Dashboard Navigation',
+                        type: 'info',
+                        message: 'Navigated to Kie.ai dashboard successfully',
+                        timestamp: new Date().toLocaleString()
+                    });
+                } else {
+                    addLogEntry({
+                        step: 'Dashboard Navigation',
+                        type: 'error',
+                        message: 'Failed to navigate to dashboard: ' + (data.message || 'Unknown error'),
+                        timestamp: new Date().toLocaleString()
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Dashboard error:', error);
+                addLogEntry({
+                    step: 'Dashboard Navigation',
+                    type: 'error',
+                    message: 'Dashboard error: ' + error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            });
+        }
+
+        // Event listeners
+        screenshotBtn.addEventListener('click', takeScreenshot);
+        pauseBtn.addEventListener('click', pauseScraper);
+        resumeBtn.addEventListener('click', resumeScraper);
+        stopBtn.addEventListener('click', stopScraper);
+        cleanBtn.addEventListener('click', cleanBrowser);
+        closeBrowserBtn.addEventListener('click', closeBrowser);
+        goToDashboardBtn.addEventListener('click', goToDashboard);
+
+        // Socket.IO event listeners
+        socket.on('debugStep', (data) => {
+            addLogEntry(data);
+        });
+        
+        function addLogEntry(data) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${data.type}`;
+            
+            const timestamp = data.timestamp || new Date().toLocaleString();
+            const message = data.error ? `${data.message} - Error: ${data.error}` : data.message;
+            
+            logEntry.innerHTML = `
+                <strong>${data.step}</strong> ${message}
+                <br><small>${timestamp}</small>
+            `;
+            
+            logs.appendChild(logEntry);
+            
+            // Add screenshot if available - place it under the log entry
+            if (data.screenshot) {
+                const screenshotDiv = document.createElement('div');
+                screenshotDiv.className = 'screenshot';
+                
+                screenshotDiv.innerHTML = `
+                    <div class="screenshot-title">📸 Screenshot: ${data.step}</div>
+                    <img src="/screenshots/${data.screenshot}" alt="${data.step}" onerror="this.style.display='none'" 
+                         onclick="window.open('/screenshots/${data.screenshot}', '_blank')">
+                `;
+                
+                logEntry.appendChild(screenshotDiv);
+            }
+            
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+        
+        function hideStatus() {
+            status.style.display = 'none';
+        }
+        
+        function showResults(data) {
+            resultContent.innerHTML = `
+                <div class="result-item">
+                    <strong>📧 Email:</strong> ${data.email}
+                </div>
+                <div class="result-item">
+                    <strong>🔑 Password:</strong> ${data.password}
+                </div>
+                <div class="result-item">
+                    <strong>✅ Status:</strong> ${data.message}
+                </div>
+            `;
+            results.style.display = 'block';
+        }
+        
+        function resetUI() {
+            hideStatus();
+            results.style.display = 'none';
+            logs.innerHTML = '<div class="log-entry info"><strong>Ready</strong> System: Waiting for account creation to start...</div>';
+        }
+        
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showStatus('Please enter both email and password', 'error');
+                return;
+            }
+
+            // Set scraper as running
+            isScraperRunning = true;
+            isScraperPaused = false;
+            updateButtonStates();
+            
+            // Disable form and show loading
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating Account...';
+            loading.style.display = 'block';
+            resetUI();
+            
+            try {
+                const response = await fetch('/api/kie-account', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Account created successfully!', 'success');
+                    showResults(data);
+                } else {
+                    showStatus(`Account creation failed: ${data.error}`, 'error');
+                }
+                
+            } catch (error) {
+                showStatus(`Error: ${error.message}`, 'error');
+                addLogEntry({
+                    step: 'Error',
+                    type: 'error',
+                    message: error.message,
+                    timestamp: new Date().toLocaleString()
+                });
+            } finally {
+                // Re-enable form
+                createBtn.disabled = false;
+                createBtn.textContent = '🚀 Start Account Creation';
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

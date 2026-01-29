@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recraft.ai Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="email"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .debug-step {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-left: 3px solid #007bff;
+            background-color: white;
+        }
+        .debug-step.error {
+            border-left-color: #dc3545;
+        }
+        .debug-step.success {
+            border-left-color: #28a745;
+        }
+        .debug-step.warning {
+            border-left-color: #ffc107;
+        }
+        .screenshot {
+            margin: 10px 0;
+            text-align: center;
+        }
+        .screenshot img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Recraft.ai Login Test</h1>
+        <p>This will test the Recraft.ai Google login process.</p>
+        
+        <form id="recraftForm">
+            <div class="form-group">
+                <label for="googleEmail">Google Email:</label>
+                <input type="email" id="googleEmail" name="googleEmail" 
+                       placeholder="your-email@gmail.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="googlePassword">Google Password:</label>
+                <input type="password" id="googlePassword" name="googlePassword" 
+                       placeholder="your-google-password" required>
+            </div>
+            
+            <button type="submit" id="submitBtn">🚀 Start Recraft.ai Login Test</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Testing Recraft.ai login process...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="debug-info" id="debugInfo" style="display: none;">
+            <h3>🔍 Debug Information</h3>
+            <div id="debugSteps"></div>
+            <div id="screenshots"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('recraftForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const debugInfo = document.getElementById('debugInfo');
+            const debugSteps = document.getElementById('debugSteps');
+            const screenshots = document.getElementById('screenshots');
+            
+            const googleEmail = document.getElementById('googleEmail').value;
+            const googlePassword = document.getElementById('googlePassword').value;
+            
+            if (!googleEmail || !googlePassword) {
+                alert('Please fill in both Google email and password');
+                return;
+            }
+            
+            // Show loading
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            debugInfo.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/recraft-login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        googleEmail: googleEmail,
+                        googlePassword: googlePassword
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                // Show result
+                result.style.display = 'block';
+                result.className = 'result ' + (data.ok ? 'success' : 'error');
+                result.innerHTML = data.ok ? 
+                    `<h3>✅ Success!</h3><p>${data.message}</p><p><strong>Final URL:</strong> ${data.finalUrl}</p>` :
+                    `<h3>❌ Error!</h3><p>${data.error}</p>`;
+                
+                // Show debug info with screenshots below each step
+                if (data.debugSteps && data.debugSteps.length > 0) {
+                    debugInfo.style.display = 'block';
+                    debugSteps.innerHTML = data.debugSteps.map((step, index) => {
+                        // Find screenshot for this step (by matching title or timestamp)
+                        const stepScreenshot = data.screenshots ? data.screenshots.find(screenshot => 
+                            screenshot.title.toLowerCase().includes(step.title.toLowerCase()) ||
+                            Math.abs(new Date(screenshot.timestamp) - new Date(step.timestamp)) < 5000 // Within 5 seconds
+                        ) : null;
+                        
+                        return `
+                            <div class="debug-step ${step.status}">
+                                <strong>${step.title}</strong> - ${step.status.toUpperCase()}<br>
+                                <small>${step.description}</small>
+                                ${step.details ? `<br><small><strong>Details:</strong> ${JSON.stringify(step.details)}</small>` : ''}
+                                ${step.error ? `<br><small><strong>Error:</strong> ${step.error}</small>` : ''}
+                                <br><small>Time: ${new Date(step.timestamp).toLocaleString()}</small>
+                                ${stepScreenshot ? `
+                                    <div class="screenshot" style="margin-top: 10px;">
+                                        <h5>📸 ${stepScreenshot.title}</h5>
+                                        <img src="data:image/png;base64,${stepScreenshot.data}" alt="${stepScreenshot.title}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 5px;">
+                                        <p><small>Screenshot Time: ${new Date(stepScreenshot.timestamp).toLocaleString()}</small></p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                // Show any remaining screenshots that weren't matched to steps
+                if (data.screenshots && data.screenshots.length > 0) {
+                    const matchedScreenshots = data.debugSteps ? data.debugSteps.map(step => 
+                        data.screenshots.find(screenshot => 
+                            screenshot.title.toLowerCase().includes(step.title.toLowerCase()) ||
+                            Math.abs(new Date(screenshot.timestamp) - new Date(step.timestamp)) < 5000
+                        )
+                    ).filter(Boolean) : [];
+                    
+                    const unmatchedScreenshots = data.screenshots.filter(screenshot => 
+                        !matchedScreenshots.includes(screenshot)
+                    );
+                    
+                    if (unmatchedScreenshots.length > 0) {
+                        screenshots.innerHTML = unmatchedScreenshots.map(screenshot => `
+                            <div class="screenshot">
+                                <h4>📸 ${screenshot.title}</h4>
+                                <img src="data:image/png;base64,${screenshot.data}" alt="${screenshot.title}">
+                                <p><small>Time: ${new Date(screenshot.timestamp).toLocaleString()}</small></p>
+                            </div>
+                        `).join('');
+                    }
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                result.style.display = 'block';
+                result.className = 'result error';
+                result.innerHTML = `<h3>❌ Network Error!</h3><p>${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

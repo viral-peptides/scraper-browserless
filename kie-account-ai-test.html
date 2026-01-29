@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kie.ai AI-Powered Account Creation</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .ai-badge {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        input[type="email"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-ai {
+            background: linear-gradient(45deg, #ff6b6b, #ffa500);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .logs {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        
+        .log-entry {
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .log-entry.info {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .log-entry.success {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .log-entry.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+        
+        .log-entry.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .screenshot {
+            margin: 5px 0;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .screenshot img {
+            max-width: 200px;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .screenshot img:hover {
+            transform: scale(1.05);
+        }
+        
+        .screenshot-title {
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .result-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .result-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .result-value {
+            color: #666;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Kie.ai AI-Powered Account Creation</h1>
+        <div class="ai-badge">Powered by ChatGPT Vision AI</div>
+        
+        <form id="accountForm">
+            <div class="form-group">
+                <label for="email">Email Address (Required):</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="Enter your email address" 
+                       value="RebeccaBeck2697@outlook.com">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password (Required):</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" class="btn btn-ai" id="startBtn">
+                🚀 Start AI-Powered Account Creation
+            </button>
+        </form>
+        
+        <div id="status" class="status" style="display: none;"></div>
+        
+        <div id="logs" class="logs" style="display: none;">
+            <h3>🤖 AI Decision Log</h3>
+            <div id="logEntries"></div>
+        </div>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3>📊 Results</h3>
+            <div id="resultItems"></div>
+        </div>
+    </div>
+
+    <script>
+        const socket = io();
+        const form = document.getElementById('accountForm');
+        const startBtn = document.getElementById('startBtn');
+        const status = document.getElementById('status');
+        const logs = document.getElementById('logs');
+        const logEntries = document.getElementById('logEntries');
+        const results = document.getElementById('results');
+        const resultItems = document.getElementById('resultItems');
+
+        // Socket event listeners
+        socket.on('log', (data) => {
+            addLogEntry(data);
+        });
+
+        function addLogEntry(data) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${data.type}`;
+            
+            const timestamp = data.timestamp || new Date().toLocaleString();
+            const message = data.error ? `${data.message} - Error: ${data.error}` : data.message;
+            
+            logEntry.innerHTML = `
+                <strong>${data.step}</strong> ${message}
+                <br><small>${timestamp}</small>
+            `;
+            
+            logEntries.appendChild(logEntry);
+            
+            // Add screenshot if available - place it under the log entry
+            if (data.screenshot) {
+                const screenshotDiv = document.createElement('div');
+                screenshotDiv.className = 'screenshot';
+                
+                screenshotDiv.innerHTML = `
+                    <div class="screenshot-title">📸 Screenshot: ${data.step}</div>
+                    <img src="/screenshots/${data.screenshot}" alt="${data.step}" onerror="this.style.display='none'" 
+                         onclick="window.open('/screenshots/${data.screenshot}', '_blank')">
+                `;
+                
+                logEntry.appendChild(screenshotDiv);
+            }
+            
+            logEntries.scrollTop = logEntries.scrollHeight;
+        }
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function showLogs() {
+            logs.style.display = 'block';
+        }
+
+        function showResults(email, password) {
+            results.style.display = 'block';
+            resultItems.innerHTML = `
+                <div class="result-item">
+                    <div class="result-label">Email:</div>
+                    <div class="result-value">${email}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Password:</div>
+                    <div class="result-value">${password}</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Status:</div>
+                    <div class="result-value">Account created successfully with AI assistance</div>
+                </div>
+            `;
+        }
+
+        function resetUI() {
+            startBtn.disabled = false;
+            startBtn.textContent = '🚀 Start AI-Powered Account Creation';
+            status.style.display = 'none';
+            logs.style.display = 'none';
+            results.style.display = 'none';
+            logEntries.innerHTML = '';
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!email || !password) {
+                showStatus('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            startBtn.disabled = true;
+            startBtn.textContent = '🤖 AI is working...';
+            showStatus('🤖 AI-powered account creation in progress...', 'info');
+            showLogs();
+            
+            try {
+                const response = await fetch('/api/kie-account-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok && data.success) {
+                    showStatus('✅ Account created successfully with AI assistance!', 'success');
+                    showResults(data.email, data.password);
+                } else {
+                    showStatus(`❌ Account creation failed: ${data.error || data.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Account creation failed: ${error.message}`, 'error');
+            } finally {
+                startBtn.disabled = false;
+                startBtn.textContent = '🚀 Start AI-Powered Account Creation';
+            }
+        });
+
+        // Initialize
+        resetUI();
+    </script>
+</body>
+</html>

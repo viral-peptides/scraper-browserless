@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recraft.ai Live Debug - Real-Time Browser View</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus, input[type="email"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #dc3545;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .debug-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .debug-step {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-left: 3px solid #007bff;
+            background-color: white;
+        }
+        .debug-step.error {
+            border-left-color: #dc3545;
+        }
+        .debug-step.success {
+            border-left-color: #28a745;
+        }
+        .debug-step.warning {
+            border-left-color: #ffc107;
+        }
+        .screenshot {
+            margin: 10px 0;
+            text-align: center;
+        }
+        .screenshot img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔴 Recraft.ai Live Debug - Real-Time Browser View</h1>
+        
+        <div class="warning">
+            <strong>⚠️ LIVE MODE WARNING:</strong> This will open a real browser window that you can see in real-time! 
+            The browser will remain open for 30 seconds after completion so you can inspect the final state.
+            <br><br>
+            <strong>Note:</strong> This only works on your local machine, not on Railway/Vercel servers.
+        </div>
+        
+        <p>This will test the Discord token authentication and Recraft.ai login process with a live browser window.</p>
+        
+        <form id="recraftForm">
+            <div class="form-group">
+                <label for="discordToken">Discord Token:</label>
+                <input type="text" id="discordToken" name="discordToken" 
+                       placeholder="Enter your Discord token here" 
+                       value="">
+            </div>
+            
+            <div class="form-group">
+                <label for="recraftEmail">Recraft.ai Email:</label>
+                <input type="email" id="recraftEmail" name="recraftEmail" 
+                       placeholder="your-email@example.com" required>
+            </div>
+            
+            <h3>🔧 Discord Session Data (Optional)</h3>
+            <p>Add your Discord session data to help establish a complete session:</p>
+            
+            <div class="form-group">
+                <label for="bisData">BIS Data (JSON):</label>
+                <textarea id="bisData" name="bisData" rows="3" 
+                          placeholder='{"id":null,"config":{"loadManagement":...}}'></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="clickX">Click X:</label>
+                <input type="number" id="clickX" name="clickX" value="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="clickY">Click Y:</label>
+                <input type="number" id="clickY" name="clickY" value="0">
+            </div>
+            
+            <div class="form-group">
+                <label for="moveX">Move X:</label>
+                <input type="number" id="moveX" name="moveX" value="685">
+            </div>
+            
+            <div class="form-group">
+                <label for="moveY">Move Y:</label>
+                <input type="number" id="moveY" name="moveY" value="507">
+            </div>
+            
+            <div class="form-group">
+                <label for="referralProperties">Referral Properties (JSON):</label>
+                <input type="text" id="referralProperties" name="referralProperties" 
+                       value='{"referrer_current":"","referring_domain_current":""}'>
+            </div>
+            
+            <button type="submit" id="submitBtn">🔴 Start LIVE Recraft.ai Debug (Opens Browser Window)</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Running Recraft.ai scraper with LIVE browser view...</p>
+            <p><strong>Watch for the browser window to open!</strong></p>
+        </div>
+        
+        <div class="result" id="result"></div>
+        
+        <div class="debug-info" id="debugInfo" style="display: none;">
+            <h3>🔍 Debug Information</h3>
+            <div id="debugSteps"></div>
+            <div id="screenshots"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('recraftForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const debugInfo = document.getElementById('debugInfo');
+            const debugSteps = document.getElementById('debugSteps');
+            const screenshots = document.getElementById('screenshots');
+            
+            const discordToken = document.getElementById('discordToken').value;
+            const recraftEmail = document.getElementById('recraftEmail').value;
+            const bisData = document.getElementById('bisData').value;
+            const clickX = document.getElementById('clickX').value;
+            const clickY = document.getElementById('clickY').value;
+            const moveX = document.getElementById('moveX').value;
+            const moveY = document.getElementById('moveY').value;
+            const referralProperties = document.getElementById('referralProperties').value;
+            
+            if (!discordToken || !recraftEmail) {
+                alert('Please fill in both Discord token and Recraft.ai email');
+                return;
+            }
+            
+            // Show loading
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            debugInfo.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/recraft-live', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        discordToken: discordToken,
+                        recraftEmail: recraftEmail,
+                        sessionData: {
+                            bisData,
+                            clickX: parseInt(clickX),
+                            clickY: parseInt(clickY),
+                            moveX: parseInt(moveX),
+                            moveY: parseInt(moveY),
+                            referralProperties
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                // Show result
+                result.style.display = 'block';
+                result.className = 'result ' + (data.ok ? 'success' : 'error');
+                result.innerHTML = data.ok ? 
+                    `<h3>✅ Success!</h3><p>${data.message}</p><p><strong>Final URL:</strong> ${data.finalUrl}</p>` :
+                    `<h3>❌ Error!</h3><p>${data.error}</p>`;
+                
+                // Show debug info with screenshots below each step
+                if (data.debugSteps && data.debugSteps.length > 0) {
+                    debugInfo.style.display = 'block';
+                    debugSteps.innerHTML = data.debugSteps.map((step, index) => {
+                        // Find screenshot for this step (by matching title or timestamp)
+                        const stepScreenshot = data.screenshots ? data.screenshots.find(screenshot => 
+                            screenshot.title.toLowerCase().includes(step.title.toLowerCase()) ||
+                            Math.abs(new Date(screenshot.timestamp) - new Date(step.timestamp)) < 5000 // Within 5 seconds
+                        ) : null;
+                        
+                        return `
+                            <div class="debug-step ${step.status}">
+                                <strong>${step.title}</strong> - ${step.status.toUpperCase()}<br>
+                                <small>${step.description}</small>
+                                ${step.details ? `<br><small><strong>Details:</strong> ${JSON.stringify(step.details)}</small>` : ''}
+                                ${step.error ? `<br><small><strong>Error:</strong> ${step.error}</small>` : ''}
+                                <br><small>Time: ${new Date(step.timestamp).toLocaleString()}</small>
+                                ${stepScreenshot ? `
+                                    <div class="screenshot" style="margin-top: 10px;">
+                                        <h5>📸 ${stepScreenshot.title}</h5>
+                                        <img src="data:image/png;base64,${stepScreenshot.data}" alt="${stepScreenshot.title}" style="max-width: 100%; border: 1px solid #ddd; border-radius: 5px;">
+                                        <p><small>Screenshot Time: ${new Date(stepScreenshot.timestamp).toLocaleString()}</small></p>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                // Show any remaining screenshots that weren't matched to steps
+                if (data.screenshots && data.screenshots.length > 0) {
+                    const matchedScreenshots = data.debugSteps ? data.debugSteps.map(step => 
+                        data.screenshots.find(screenshot => 
+                            screenshot.title.toLowerCase().includes(step.title.toLowerCase()) ||
+                            Math.abs(new Date(screenshot.timestamp) - new Date(step.timestamp)) < 5000
+                        )
+                    ).filter(Boolean) : [];
+                    
+                    const unmatchedScreenshots = data.screenshots.filter(screenshot => 
+                        !matchedScreenshots.includes(screenshot)
+                    );
+                    
+                    if (unmatchedScreenshots.length > 0) {
+                        screenshots.innerHTML = unmatchedScreenshots.map(screenshot => `
+                            <div class="screenshot">
+                                <h4>📸 ${screenshot.title}</h4>
+                                <img src="data:image/png;base64,${screenshot.data}" alt="${screenshot.title}">
+                                <p><small>Time: ${new Date(screenshot.timestamp).toLocaleString()}</small></p>
+                            </div>
+                        `).join('');
+                    }
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+                
+                result.style.display = 'block';
+                result.className = 'result error';
+                result.innerHTML = `<h3>❌ Network Error!</h3><p>${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

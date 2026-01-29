@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI-Guided Recraft.ai Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .debug-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .debug-step {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+
+        .debug-step.info {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+
+        .debug-step.success {
+            background: #e8f5e8;
+            border-left-color: #4caf50;
+        }
+
+        .debug-step.error {
+            background: #ffebee;
+            border-left-color: #f44336;
+        }
+
+        .debug-step.warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        .debug-step.screenshot {
+            background: #f3e5f5;
+            border-left-color: #9c27b0;
+        }
+
+        .debug-step h4 {
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .debug-step p {
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .debug-step img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .ai-features {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .ai-features h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .ai-features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .ai-features li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ai-features li:last-child {
+            border-bottom: none;
+        }
+
+        .ai-features li::before {
+            content: "🤖";
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI-Guided Recraft.ai Scraper</h1>
+            <p>Powered by OpenAI GPT-4 Vision - Let AI guide the scraping process!</p>
+        </div>
+
+        <div class="content">
+            <div class="ai-features">
+                <h3>🧠 AI-Powered Features</h3>
+                <ul>
+                    <li>Real-time screenshot analysis with GPT-4 Vision</li>
+                    <li>Smart button detection and clicking</li>
+                    <li>Adaptive navigation through complex login flows</li>
+                    <li>Automatic handling of popups and redirects</li>
+                    <li>Intelligent error recovery and fallback strategies</li>
+                    <li>Visual recognition of page states and elements</li>
+                </ul>
+            </div>
+
+            <div class="form-section">
+                <h3>🚀 Start AI-Guided Scraping</h3>
+                <form id="recraftAIForm">
+                    <div class="form-group">
+                        <label for="googleEmail">Google Email:</label>
+                        <input type="email" id="googleEmail" name="googleEmail" 
+                               placeholder="your-email@gmail.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="googlePassword">Google Password:</label>
+                        <input type="password" id="googlePassword" name="googlePassword" 
+                               placeholder="your-google-password" required>
+                    </div>
+                    
+                    <button type="submit" id="submitBtn" class="submit-btn">
+                        🤖 Start AI-Guided Recraft.ai Scraping
+                    </button>
+                </form>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>🤖 AI is analyzing the page and making decisions...</p>
+                <p><small>This may take a few minutes as AI processes each step</small></p>
+            </div>
+
+            <div class="result" id="result"></div>
+            <div class="debug-section" id="debugSection">
+                <h3>🔍 AI Decision Log</h3>
+                <div id="debugSteps"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('recraftAIForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const debugSection = document.getElementById('debugSection');
+            const debugSteps = document.getElementById('debugSteps');
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                googleEmail: formData.get('googleEmail'),
+                googlePassword: formData.get('googlePassword')
+            };
+            
+            // Show loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '🤖 AI is working...';
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            debugSection.style.display = 'none';
+            
+            try {
+                const response = await fetch('/api/recraft-ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const resultData = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                // Show result
+                result.style.display = 'block';
+                result.className = `result ${resultData.ok ? 'success' : 'error'}`;
+                
+                if (resultData.ok) {
+                    result.innerHTML = `
+                        <h3>✅ ${resultData.success ? 'AI-Guided Scraping Successful!' : 'AI-Guided Scraping Completed'}</h3>
+                        <p><strong>Final URL:</strong> ${resultData.finalUrl || 'N/A'}</p>
+                        <p><strong>Final Title:</strong> ${resultData.finalTitle || 'N/A'}</p>
+                        <p><strong>Message:</strong> ${resultData.message || 'Process completed'}</p>
+                    `;
+                } else {
+                    result.innerHTML = `
+                        <h3>❌ AI-Guided Scraping Failed</h3>
+                        <p><strong>Error:</strong> ${resultData.error || 'Unknown error occurred'}</p>
+                    `;
+                }
+                
+                // Show debug steps if available
+                if (resultData.steps && resultData.steps.length > 0) {
+                    debugSection.style.display = 'block';
+                    debugSteps.innerHTML = '';
+                    
+                    resultData.steps.forEach((step, index) => {
+                        const stepDiv = document.createElement('div');
+                        stepDiv.className = `debug-step ${step.status}`;
+                        
+                        let stepContent = `
+                            <h4>${step.step}</h4>
+                            <p><strong>Status:</strong> ${step.status}</p>
+                            <p><strong>Message:</strong> ${step.message}</p>
+                            <p><strong>Time:</strong> ${new Date(step.timestamp).toLocaleString()}</p>
+                        `;
+                        
+                        if (step.error) {
+                            stepContent += `<p><strong>Error:</strong> ${step.error}</p>`;
+                        }
+                        
+                        if (step.screenshot) {
+                            stepContent += `<img src="/screenshots/${step.screenshot}" alt="Screenshot ${index + 1}" style="max-width: 100%; height: auto; border-radius: 8px; margin-top: 10px;">`;
+                        }
+                        
+                        stepDiv.innerHTML = stepContent;
+                        debugSteps.appendChild(stepDiv);
+                    });
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.className = 'result error';
+                
+                let errorMessage = `Failed to connect to the AI scraper: ${error.message}`;
+                if (error.message.includes('503')) {
+                    errorMessage = 'AI module is not available. The server may be starting up or there might be a configuration issue.';
+                }
+                
+                result.innerHTML = `
+                    <h3>❌ Connection Error</h3>
+                    <p>${errorMessage}</p>
+                    <p><small>Please try again in a few minutes or contact support if the issue persists.</small></p>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '🤖 Start AI-Guided Recraft.ai Scraping';
+            }
+        });
+    </script>
+</body>
+</html>

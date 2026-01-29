@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Recraft.ai Session Scraper</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .session-status {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 4px solid #28a745;
+        }
+
+        .session-status.no-session {
+            border-left-color: #dc3545;
+        }
+
+        .session-status h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .session-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .session-info-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+
+        .session-info-item strong {
+            color: #333;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .session-info-item span {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .logs-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .logs-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .logs-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .log-entry {
+            padding: 12px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 12px;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .log-status.info { background: #17a2b8; }
+        .log-status.success { background: #28a745; }
+        .log-status.warning { background: #ffc107; }
+        .log-status.error { background: #dc3545; }
+
+        .log-content {
+            flex: 1;
+        }
+
+        .log-step {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .log-message {
+            color: #666;
+            margin-bottom: 3px;
+        }
+
+        .log-time {
+            font-size: 0.8em;
+            color: #999;
+        }
+
+        .log-screenshot {
+            margin-top: 8px;
+            max-width: 200px;
+            max-height: 150px;
+            width: auto;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .features {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .features h3 {
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .features ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .features li:last-child {
+            border-bottom: none;
+        }
+
+        .features li::before {
+            content: "♻️";
+            font-size: 1.2em;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn.primary {
+            background: #28a745;
+            color: white;
+        }
+
+        .action-btn.secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>♻️ Recraft.ai Session Scraper</h1>
+            <p>Maintains browser sessions for faster repeated scraping!</p>
+        </div>
+
+        <div class="content">
+            <div class="features">
+                <h3>♻️ Session Features</h3>
+                <ul>
+                    <li>Maintains browser session between scrapes</li>
+                    <li>Reuses existing login (much faster!)</li>
+                    <li>30-minute session timeout</li>
+                    <li>Real-time session status monitoring</li>
+                    <li>Automatic session cleanup</li>
+                    <li>Session persistence across requests</li>
+                </ul>
+            </div>
+
+            <!-- Session Status Section -->
+            <div class="session-status" id="sessionStatus">
+                <h3>📊 Session Status</h3>
+                <div class="session-info" id="sessionInfo">
+                    <div class="session-info-item">
+                        <strong>Status:</strong>
+                        <span id="sessionActive">Checking...</span>
+                    </div>
+                    <div class="session-info-item">
+                        <strong>User:</strong>
+                        <span id="sessionUser">-</span>
+                    </div>
+                    <div class="session-info-item">
+                        <strong>Session ID:</strong>
+                        <span id="sessionId">-</span>
+                    </div>
+                    <div class="session-info-item">
+                        <strong>Time Remaining:</strong>
+                        <span id="sessionTime">-</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn primary" onclick="refreshSessionStatus()">🔄 Refresh Status</button>
+                    <button class="action-btn secondary" onclick="cleanupSession()">🗑️ Cleanup Session</button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3>🚀 Start Session-Based Scraping</h3>
+                <form id="recraftSessionForm">
+                    <div class="form-group">
+                        <label for="googleEmail">Google Email:</label>
+                        <input type="email" id="googleEmail" name="googleEmail" 
+                               placeholder="your-email@gmail.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="googlePassword">Google Password:</label>
+                        <input type="password" id="googlePassword" name="googlePassword" 
+                               placeholder="your-google-password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="prompt">Image Prompt (optional):</label>
+                        <textarea id="prompt" name="prompt" 
+                                  placeholder="banana bread in kitchen with sun light">banana bread in kitchen with sun light</textarea>
+                    </div>
+                    
+                    <button type="submit" id="submitBtn" class="submit-btn">
+                        ♻️ Start Session-Based Scraping
+                    </button>
+                </form>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>♻️ Processing your request...</p>
+                <p><small>This may take a few minutes</small></p>
+            </div>
+
+            <!-- Real-time Logs Section -->
+            <div class="logs-section" id="logsSection" style="display: none;">
+                <h3>📊 Real-time Logs</h3>
+                <div class="logs-container" id="logsContainer">
+                    <div class="log-entry">
+                        <div class="log-status info"></div>
+                        <div class="log-content">
+                            <div class="log-step">System</div>
+                            <div class="log-message">Waiting for logs...</div>
+                            <div class="log-time" id="currentTime"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result" id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        
+        // DOM elements
+        const logsSection = document.getElementById('logsSection');
+        const logsContainer = document.getElementById('logsContainer');
+        const sessionStatus = document.getElementById('sessionStatus');
+        const sessionInfo = document.getElementById('sessionInfo');
+        
+        // Update current time
+        function updateTime() {
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = new Date().toLocaleString();
+            }
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Socket event handlers
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+        
+        socket.on('scraper-log', (logData) => {
+            addLog(logData.step, logData.status, logData.message, logData.screenshot, logData.error);
+        });
+        
+        // Add log entry to UI
+        function addLog(step, status, message, screenshot = null, error = null) {
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            const time = new Date().toLocaleString();
+            
+            logEntry.innerHTML = `
+                <div class="log-status ${status}"></div>
+                <div class="log-content">
+                    <div class="log-step">${step}</div>
+                    <div class="log-message">${message}</div>
+                    ${error ? `<div class="log-message" style="color: #dc3545;">Error: ${error}</div>` : ''}
+                    <div class="log-time">${time}</div>
+                    ${screenshot ? `<img src="${screenshot}" class="log-screenshot" alt="Screenshot">` : ''}
+                </div>
+            `;
+            
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        // Refresh session status
+        async function refreshSessionStatus() {
+            try {
+                const response = await fetch('/api/recraft-session-status');
+                const data = await response.json();
+                
+                if (data.ok) {
+                    updateSessionStatus(data);
+                } else {
+                    console.error('Failed to get session status:', data.error);
+                }
+            } catch (error) {
+                console.error('Error refreshing session status:', error);
+            }
+        }
+
+        // Update session status display
+        function updateSessionStatus(data) {
+            const sessionActive = document.getElementById('sessionActive');
+            const sessionUser = document.getElementById('sessionUser');
+            const sessionId = document.getElementById('sessionId');
+            const sessionTime = document.getElementById('sessionTime');
+            
+            if (data.hasActiveSession) {
+                sessionActive.textContent = '🟢 Active';
+                sessionUser.textContent = data.userEmail || '-';
+                sessionId.textContent = data.sessionId || '-';
+                
+                const timeRemaining = Math.floor(data.timeRemaining / 1000 / 60);
+                sessionTime.textContent = `${timeRemaining} minutes`;
+                
+                sessionStatus.className = 'session-status';
+            } else {
+                sessionActive.textContent = '🔴 No Active Session';
+                sessionUser.textContent = '-';
+                sessionId.textContent = '-';
+                sessionTime.textContent = '-';
+                
+                sessionStatus.className = 'session-status no-session';
+            }
+        }
+
+        // Cleanup session
+        async function cleanupSession() {
+            try {
+                const response = await fetch('/api/recraft-session-cleanup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.ok) {
+                    alert('Session cleaned up successfully!');
+                    refreshSessionStatus();
+                } else {
+                    alert('Failed to cleanup session: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error cleaning up session: ' + error.message);
+            }
+        }
+
+        // Form submission
+        document.getElementById('recraftSessionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                googleEmail: formData.get('googleEmail'),
+                googlePassword: formData.get('googlePassword'),
+                prompt: formData.get('prompt') || 'banana bread in kitchen with sun light'
+            };
+            
+            // Show loading and logs
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '♻️ Processing...';
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            logsSection.style.display = 'block';
+            
+            // Clear previous logs
+            logsContainer.innerHTML = '';
+            addLog('System', 'info', 'Starting session-based Recraft.ai scraping...');
+            
+            try {
+                const response = await fetch('/api/recraft-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const resultData = await response.json();
+                
+                // Hide loading
+                loading.style.display = 'none';
+                
+                // Show result
+                result.style.display = 'block';
+                result.className = `result ${resultData.ok ? 'success' : 'error'}`;
+                
+                if (resultData.ok) {
+                    result.innerHTML = `
+                        <h3>✅ ${resultData.success ? 'Session-Based Scraping Successful!' : 'Session-Based Scraping Completed'}</h3>
+                        <p><strong>Session Reused:</strong> ${resultData.sessionReused ? 'Yes ♻️' : 'No (New Session Created)'}</p>
+                        <p><strong>Session ID:</strong> ${resultData.sessionId || 'N/A'}</p>
+                        <p><strong>Final URL:</strong> ${resultData.finalUrl || 'N/A'}</p>
+                        <p><strong>Final Title:</strong> ${resultData.finalTitle || 'N/A'}</p>
+                        <p><strong>Generated Image:</strong> ${resultData.imageUrl ? `<a href="${resultData.imageUrl}" target="_blank">View Image</a>` : 'N/A'}</p>
+                        <p><strong>Prompt:</strong> ${resultData.prompt || 'N/A'}</p>
+                        <p><strong>Message:</strong> ${resultData.message || 'Process completed'}</p>
+                    `;
+                    
+                    // Refresh session status
+                    refreshSessionStatus();
+                } else {
+                    result.innerHTML = `
+                        <h3>❌ Session-Based Scraping Failed</h3>
+                        <p><strong>Error:</strong> ${resultData.error || 'Unknown error occurred'}</p>
+                    `;
+                }
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                result.style.display = 'block';
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>❌ Connection Error</h3>
+                    <p>Failed to connect to the session scraper: ${error.message}</p>
+                `;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '♻️ Start Session-Based Scraping';
+            }
+        });
+
+        // Load session status on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            refreshSessionStatus();
+        });
+    </script>
+</body>
+</html>
