@@ -3790,6 +3790,11 @@ app.get('/recraft-session', (req, res) => {
   res.sendFile(path.join(__dirname, 'recraft-session-test.html'));
 });
 
+// GET /api/latenode-account-create → redirect to test page (browser visits send GET)
+app.get('/api/latenode-account-create', (req, res) => {
+  res.redirect('/latenode-account');
+});
+
 // HTTP-based Latenode account creation endpoint (email optional - uses TempMail if not provided)
 app.post('/api/latenode-account-create', async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
